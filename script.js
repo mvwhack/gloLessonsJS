@@ -2,58 +2,85 @@
 
 const appData = {
   title: '',
-  screens: '',
+  screens: [],
   screenPrice: 0,
   adaptive: true,
-  rollback: 27,
+  rollback: 10,
   fullPrice: 0,
   allServicePrices: 0,
   servicePercentPrice: 0,
-  service1: '',
-  service2: '',
+  services: {},
   asking: function () {
-    appData.title = prompt("Как называется ваш проект?", "Калькулятор верстки");
-    appData.screens = prompt("Какие типы экранов нужно разработать?", "Простые, Сложные");
 
     do {
-      appData.screenPrice = Number(appData.screenPrice = prompt("Сколько будет стоить данная работа?"));
-      // Number() обрезает пробелы, а так же преобразует NULL в 0
+      appData.title = prompt("Как называется ваш проект?");
     }
-    while (!appData.isNumber(appData.screenPrice));
+    while (appData.isNumber(appData.title));
+
+    for (let i = 0; i < 2; i++) {
+      let name = '';
+      let price = 0;
+
+      do {
+        name = prompt("Какие типы экранов нужно разработать?");
+      }
+      while (appData.isNumber(name));
+
+      do {
+        price = Number(price = prompt("Сколько будет стоить данная работа?"));
+      }
+      while (!appData.isNumber(price));
+
+      appData.screens.push({
+        id: i,
+        name: name,
+        price: price
+      });
+
+    }
+
+    for (let i = 0; i < 2; i++) {
+      let name = '';
+      let price = 0;
+
+      do {
+        name = i + prompt("Какой дополнительный тип услуги нужен?");
+      }
+      while (appData.isNumber(name));
+
+      do {
+        price = Number(price = prompt("Сколько это будет стоить?"));
+      }
+      while (!appData.isNumber(price));
+
+      appData.services[name] = +price;
+
+    }
 
     appData.adaptive = confirm("Нужен ли адаптив на сайте?");
+  },
+  addPrices: function () {
+    let initialValue = 0;
+    appData.screenPrice = appData.screens.reduce(function (sum, velue) {
+      return sum + velue.price;
+    }, initialValue);
+
+    for (let key in appData.services) {
+      appData.allServicePrices += appData.services[key];
+    }
   },
   isNumber: function (num) {
     return !isNaN(parseFloat(num)) && isFinite(num);
   },
-  getAllServicePrices: function () {
-    let sum = 0;
-
-    for (let i = 0; i < 2; i++) {
-
-      if (i === 0) {
-        appData.service1 = prompt("Какой дополнительный тип услуги нужен?");
-      } else if (i === 1) {
-        appData.service2 = prompt("Какой дополнительный тип услуги нужен?");
-      }
-
-      do {
-        sum = Number(sum = prompt("Сколько это будет стоить?"));
-      }
-      while (!appData.isNumber(sum));
-      sum += sum;
-    }
-    return sum;
-  },
   getFullPrice: function () {
-    return appData.screenPrice + appData.allServicePrices;
+    appData.fullPrice = appData.screenPrice + appData.allServicePrices;
   },
   getTitle: function (name) {
     name = name.trim();
-    return name[0].toUpperCase() + name.substring(1).toLowerCase();
+    appData.title = name[0].toUpperCase() + name.substring(1).toLowerCase();
   },
   getServicePercentPrices: function (fPrice, manyback) {
-    return Math.ceil(fPrice - (fPrice * (manyback / 100)));
+    appData.servicePercentPrice = Math.ceil(fPrice - (fPrice * (manyback / 100)));
   },
   getRollbackMessage: function (price) {
     if (price >= 30000) {
@@ -68,16 +95,21 @@ const appData = {
   },
   start: function () {
     appData.asking();
-    appData.allServicePrices = appData.getAllServicePrices();
-    appData.fullPrice = appData.getFullPrice();
-    appData.title = appData.getTitle(appData.title);
-    appData.servicePercentPrice = appData.getServicePercentPrices(appData.fullPrice, appData.rollback);
+    appData.addPrices();
+    appData.getFullPrice();
+    appData.getTitle(appData.title);
+    appData.getServicePercentPrices(appData.fullPrice, appData.rollback);
 
     appData.logger();
   },
   logger: function () {
     console.log(appData.fullPrice);
     console.log(appData.servicePercentPrice);
+    console.log(appData.services);
+    console.log(appData.screens);
+
+    console.log(appData.screenPrice);
+
     for (let key in appData) {
       console.log("Ключ: " + key + " " + "Значение: " + appData[key]);
     }
